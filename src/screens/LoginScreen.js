@@ -7,15 +7,15 @@ import {
     Image,
     TouchableOpacity,
 } from '../components';
-import bgImage from '../src/assets/images/bg-login.png';
-import { FONTS } from '../src/assets/fonts';
+import bgImage from '../assets/images/bg-login.png';
+import { FONTS } from '../assets/fonts';
 import { UserIcon, KeyIcon } from "react-native-heroicons/outline";
 // import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { BaseURL } from '../src/constant';
+import { fetchAPI } from '../constant';
+
 
 const LoginScreen = () => {
-
     const userObj = {
         email: "",
         password: ""
@@ -24,17 +24,20 @@ const LoginScreen = () => {
     const [user, setUser] = useState(userObj);
     const [errors, setErrors] = useState({});
 
-    // const loginHandler = async () => {
-    // const { data } = await axios.post('http://54.145.81.48:5000/users/login', userObject);
-    // console.log(data);
-    // console.log("Login: ", email, password);
-    // }
-
+    const loginHandler = async () => {
+        const { data } = await fetchAPI({
+            method: "POST",
+            endPoint: "/users/login",
+            data: user
+        });
+        console.log("data: ", data);
+    }
 
     const onChange = ({ name, value }) => {
+        setErrors({});
         setUser({ ...user, [name]: value });
 
-        if (value !== "") {
+        if (value.trim() !== "") {
             if (name === "password") {
                 if (value.length < 6) {
                     setErrors({ ...errors, [name]: "Password must be at least 6 characters long" });
@@ -42,7 +45,9 @@ const LoginScreen = () => {
                     setErrors({ ...errors, [name]: null });
                 }
             } if (name === "email") {
-                if (!value.includes("@")) {
+                // regex for email
+                const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                if (!emailRegex.test(value)) {
                     setErrors({ ...errors, [name]: "Please enter a valid email address" });
                 } else {
                     setErrors({ ...errors, [name]: null });
@@ -51,13 +56,6 @@ const LoginScreen = () => {
         }
     }
 
-
-    useEffect(() => {
-        console.log("BaseURL: ", BaseURL);
-    }, [])
-
-
-
     return (
         <ImageBackground source={bgImage} className="w-full h-full">
             <StatusBar animated={true} backgroundColor="#61dafb" barStyle="dark-content" hidden={false} />
@@ -65,8 +63,8 @@ const LoginScreen = () => {
             <View className='flex-1 justify-center items-center'>
                 <View className='space-y-3'>
                     <View className='mb-4'>
-                        <Text className={`text-4xl text-green-200 font-['${FONTS.bold}']`}>Login</Text>
-                        <Text className="text-lg text-gray-300">Please sign in to continue.</Text>
+                        <Text className={`text-4xl font-bold text-green-100 font-['${FONTS.bold}']`}>Login</Text>
+                        <Text className="text-lg text-green-100">Please sign in to continue.</Text>
                     </View>
 
                     <View>
@@ -74,7 +72,7 @@ const LoginScreen = () => {
                             <UserIcon color="gray" size={24} />
                             <TextInput
                                 placeholderTextColor='gray'
-                                className="w-60 h-10 text-white placeholder-white"
+                                className="w-60 h-10 text-white"
                                 maxLength={25}
                                 placeholder="Email"
                                 value={user.email}
@@ -103,7 +101,7 @@ const LoginScreen = () => {
                         {errors.password && <Text className='text-red-500 text-xs ml-12'>{errors.password}</Text>}
                     </View>
 
-                    <TouchableOpacity
+                    <TouchableOpacity onPress={loginHandler}
                         className='bg-green-100 w-80 h-10 rounded-lg items-center justify-center'>
                         <Text className='text-green-700 font-["Poppins-SemiBold"] text-lg'>LOGIN</Text>
                     </TouchableOpacity>
